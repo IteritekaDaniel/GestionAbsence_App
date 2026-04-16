@@ -1,0 +1,239 @@
+🎓 ABSENCESPRO v2.0 — QUICK START GUIDE
+
+================================================================================
+📦 INSTALLATION (2 minutes)
+================================================================================
+
+1. Ouvrir CMD/PowerShell dans le dossier "GestionAbsence App"
+
+2. Installer les dépendances:
+   pip install -r requirements.txt
+
+   Si pip ne fonctionne pas:
+   python -m pip install -r requirements.txt
+
+3. Démarrer l'application:
+   python main.py
+
+4. Connexion par défaut:
+   Utilisateur: admin
+   Mot de passe: admin123
+
+================================================================================
+🔐 PREMIÈRE UTILISATION (5 minutes)
+================================================================================
+
+1. Se connecter avec admin/admin123
+
+2. ⚙️ Aller dans "Paramètres" → Modifier le mot de passe IMMÉDIATEMENT
+   (utilisez un mot de passe fort: 8+ chars, majuscule, chiffre, caractère spécial)
+
+3. (Optionnel) Activer 2FA:
+   - Aller dans "Administrateurs"
+   - Sélectionner "admin"
+   - Cliquer "🔑 Gérer 2FA"
+   - Scanner le QR code avec Google Authenticator
+   - Garder les codes de secours en lieu sûr
+
+4. Commencer à ajouter des étudiants:
+   - Aller dans "👥 Étudiants"
+   - Cliquer "+ Ajouter"
+   - Remplir nom, prénom, classe
+
+================================================================================
+📋 WORKFLOW PRINCIPAL
+================================================================================
+
+   Jour 1: Ajouter étudiants + parents
+   ├─ Étudiants tab → + Ajouter → Remplir infos
+   └─ Parents tab → + Ajouter → Associer à un étudiant
+
+   Jour 2+: Marquer absences
+   ├─ Absences tab → Sélectionner date
+   ├─ Double-clic sur un étudiant → Choisir statut (Présent/Absent)
+   └─ Bouton "💾 Tout enregistrer"
+
+   Suivi: Gérer demandes & alertes (optionnel)
+   ├─ Demandes tab → Approuver/Rejeter les demandes des étudiants
+   ├─ Alertes tab → Configurer seuils, vérifier règles
+   └─ 📧 Envoyer notifications aux parents
+
+   Rapports: Analyser les données
+   ├─ Statistiques tab → KPIs globaux
+   ├─ Rapports tab → Générer PDF/CSV
+   └─ Audit tab → Historique des actions
+
+================================================================================
+🆕 NOUVELLES FONCTIONNALITÉS v2.0
+================================================================================
+
+1️⃣  GESTION DES PARENTS
+    • Enregistrer contact des parents (email, téléphone)
+    • Envoyer notifications directement depuis l'app
+    • Exporter liste des parents
+
+2️⃣  DEMANDES DE VALIDATION
+    • Les étudiants demandent validation d'une absence
+    • Admin approuve (marquer présent) ou rejette
+    • Workflow complet avec statuts
+
+3️⃣  ALERTES INTELLIGENTES
+    • Créer règles d'alerte (ex: 10+ absences en 30 jours)
+    • Appliquer par classe ou globalement
+    • Notifier automatiquement les parents par email
+    • Vérifier seuils avec 1 clic
+
+4️⃣  ADMINISTRATEURS MULTI-RÔLES
+    • 3 niveaux: Admin (accès total), Éditeur (CRUD), Lecteur (lecture)
+    • Ajouter plusieurs admins avec des rôles différents
+    • Session avec traçabilité (qui, quand)
+
+5️⃣  AUTHENTIFICATION 2FA
+    • Activer 2FA par admin (TOTP - Google Authenticator)
+    • Codes de secours automatiques
+    • Plus sécurisé
+
+6️⃣  RAPPORTS AVANCÉS
+    • Rapport détaillé par étudiant (PDF + CSV)
+    • Rapport par date
+    • Rapport de période (du X au Y)
+    • Exporter listes spéciales (alertes, demandes, parents)
+
+7️⃣  JOURNAUX D'AUDIT
+    • Historique complet de TOUTES les actions
+    • Qui a fait quoi, quand, avant/après
+    • Filtrer par table, admin, action
+    • Exporter pour conformité
+
+8️⃣  NOTES DÉTAILLÉES
+    • Ajouter type d'absence (justifiée/non-justifiée)
+    • Noter les raisons (admin)
+    • Historique des modifications
+
+9️⃣  EMAIL & NOTIFICATIONS
+    • Templates d'email personnalisables
+    • Notifications automatiques aux parents
+    • Prêt pour intégration SMTP
+
+🔟  VALIDATION SÉCURITÉ
+    • Validation force mot de passe
+    • Hashage SHA256
+    • Contrôle d'accès par rôle
+
+================================================================================
+🔧 CONFIGURATION OPTIONNELLE
+================================================================================
+
+EMAIL (pour notifications automatiques):
+─────────────────────────────────────
+Éditer services.py, fonction send_email():
+
+  SMTP_SERVER = "smtp.gmail.com"          # Gmail
+  SENDER_EMAIL = "votre_email@gmail.com"
+  SENDER_PASSWORD = "xxxx xxxx xxxx xxxx" # App Password de Gmail
+
+Pour générer App Password Gmail:
+  1. Aller sur myaccount.google.com/security
+  2. Activer "2-Step Verification"
+  3. Créer "App Password" → Copier le code
+  4. Coller dans SENDER_PASSWORD
+
+================================================================================
+📊 NAVIGATION (Sidebar)
+================================================================================
+
+GESTION
+├─ 👥 Étudiants        → CRUD complet des étudiants
+├─ 👨‍👩‍👧 Parents          → Contacts parents (NEW)
+└─ 📅 Absences         → Marquer présence/absence par date
+
+SUIVI
+├─ 📋 Demandes         → Approuver/rejeter demandes (NEW)
+├─ 🔔 Alertes          → Configurer et vérifier seuils (NEW)
+└─ 📊 Statistiques     → KPIs et graphiques
+
+ADMINISTRATION
+├─ 📈 Rapports         → PDF/CSV détaillés (NEW)
+├─ 🔐 Administrateurs  → Gestion multi-admins (NEW)
+├─ 📋 Audit            → Historique complet (NEW)
+└─ ⚙️ Paramètres       → Compte, préférences
+
+================================================================================
+⌨️  RACCOURCIS CLAVIER
+================================================================================
+
+Dans la plupart des formulaires:
+  • Entrée (Enter) → Enregistrer
+  • Échap (Esc) → Annuler (si applicable)
+
+Tableau (Treeview):
+  • Double-clic → Éditer la ligne
+  • Sélectionner + Suppr → Supprimer (confirmation)
+  • Clic en-tête colonne → Trier
+
+================================================================================
+🐛 TROUBLESHOOTING
+================================================================================
+
+Problème: ModuleNotFoundError: No module named 'customtkinter'
+Solution: pip install customtkinter>=5.2.0
+
+Problème: Database is locked
+Solution: Fermer l'app, attendre 5 sec, redémarrer
+
+Problème: La base de données disparaît
+Solution: La base "absences.db" se crée automatiquement au 1er démarrage
+         Elle est dans le dossier de l'app
+
+Problème: Les emails ne s'envoient pas
+Solution: 
+  1. Vérifier config SMTP dans services.py
+  2. Pour Gmail: utiliser App Password (pas mot de passe du compte)
+  3. Vérifier que le firewall/antivirus ne bloque pas
+
+Problème: Impossible de démarrer la fenêtre sur le moniteur correct
+Solution: C'est normal, l'app se lance sur l'écran principal
+         Vous pouvez la déplacer manuellement
+
+================================================================================
+📝 DONNÉES D'EXEMPLE POUR TESTER
+================================================================================
+
+Ajouter ces test:
+
+ÉTUDIANTS:
+  Nom: Dupont, Prénom: Jean, Classe: 6A
+  Nom: Martin, Prénom: Marie, Classe: 6A
+  Nom: Bernard, Prénom: Paul, Classe: 6B
+
+PARENTS:
+  Dupont Jean → Parent: Dupont, Prénom: Anne
+             → Email: anne.dupont@email.com
+  
+ABSENCES:
+  2024-11-15: Dupont Jean → Absent
+  2024-11-15: Martin Marie → Présente
+
+ALERTES:
+  Nom: "Alerte 5+ absences", Max: 5, Période: 30j, Classe: Toutes
+
+Puis vérifier que les alertes se déclenchent et les emails se préparent!
+
+================================================================================
+📞 SUPPORT
+================================================================================
+
+Code source complet avec commentaires dans:
+  • database.py  → Schéma de la base (12 tables)
+  • services.py  → 100+ fonctions métier
+  • ui_*.py      → Interfaces (10 vues)
+
+Documentation complète dans:
+  • README.md    → Architecture, API, FAQ
+
+================================================================================
+
+Version: 2.0 (April 2026)
+Status: PRODUCTION READY ✅
+
+Amusez-vous bien avec AbsencesPro! 🎓

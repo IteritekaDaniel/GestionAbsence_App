@@ -1,0 +1,894 @@
+"""
+═════════════════════════════════════════════════════════════════════════════════
+📚 DOCUMENTATION COMPLÈTE: API DATABASE
+═════════════════════════════════════════════════════════════════════════════════
+
+Ce document liste TOUTES les fonctions disponibles dans database.py et database_mysql.py
+
+Utilisation:
+  from database import *              # Pour SQLite
+  from database_mysql import *        # Pour MySQL
+
+═════════════════════════════════════════════════════════════════════════════════
+SOMMAIRE
+═════════════════════════════════════════════════════════════════════════════════
+
+A. INITIALISATION
+B. UTILISATEURS (ADMIN)
+C. ÉTUDIANTS
+D. ABSENCES
+E. PARENTS
+F. ADMINS MULTI-RÔLES
+G. AUTHENTIFICATION 2FA
+H. DEMANDES D'ABSENCE
+I. ALERTES ET SEUILS
+J. NOTIFICATIONS
+K. NOTES D'ABSENCE
+L. AUDIT ET LOGS
+M. EMAIL TEMPLATES
+N. STATISTIQUES
+O. UTILITAIRES
+
+═════════════════════════════════════════════════════════════════════════════════
+A. INITIALISATION
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: init_db()
+──────────────────
+Description: Initialise la base de données avec toutes les tables
+Retour: None
+Effets: Crée absences.db (SQLite) ou tables MySQL
+Erreurs: Ignore si tables existent déjà
+
+Exemple:
+    from database import init_db
+    init_db()  # Base est prête
+
+
+Fonction: get_connection()
+──────────────────────────
+Description: Retourne une connexion à la base de données
+Retour: sqlite3.Connection (SQLite) ou mysql.connector.MySQLConnection (MySQL)
+Utilisation: Requêtes personnalisées avancées
+
+Exemple:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM etudiants")
+    results = cursor.fetchall()
+
+═════════════════════════════════════════════════════════════════════════════════
+B. UTILISATEURS (ADMIN) - ANCIEN SYSTÈME
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: verify_login(username, password)
+───────────────────────────────────────────
+Description: Vérifie les identifiants administrateur
+Arguments:
+  - username: str (nom d'utilisateur)
+  - password: str (mot de passe en clair)
+Retour: dict (admin user) ou None
+Erreurs: None si identifiants incorrects
+
+Exemple:
+    admin = verify_login("admin", "password123")
+    if admin:
+        print(f"Connecté: {admin['username']}")
+    else:
+        print("Identifiants incorrects")
+
+
+Fonction: add_admin(username, password)
+───────────────────────────────────────
+Description: Ajoute un nouvel administrateur
+Arguments:
+  - username: str (unique)
+  - password: str (haché en SHA256)
+Retour: bool (succès ou non)
+Erreurs: False si username existe déjà
+
+Exemple:
+    if add_admin("prof_jean", "motdepasse123"):
+        print("Admin créé")
+
+
+Fonction: update_admin_password(username, new_password)
+──────────────────────────────────────────────────────
+Description: Change le mot de passe d'un admin
+Arguments:
+  - username: str
+  - new_password: str (haché automatiquement)
+Retour: bool
+Erreurs: False si utilisateur n'existe pas
+
+Exemple:
+    update_admin_password("admin", "nouveau_motdepasse")
+
+
+Fonction: delete_admin(username)
+────────────────────────────────
+Description: Supprime un administrateur
+Arguments:
+  - username: str
+Retour: bool
+Erreurs: False si utilisateur n'existe pas
+
+Exemple:
+    delete_admin("ancien_prof")
+
+═════════════════════════════════════════════════════════════════════════════════
+C. ÉTUDIANTS
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: add_student(first_name, last_name, class_name, parent_email)
+───────────────────────────────────────────────────────────────────────
+Description: Ajoute un nouvel étudiant
+Arguments:
+  - first_name: str (prénom)
+  - last_name: str (nom)
+  - class_name: str (classe, ex: "5A")
+  - parent_email: str (email parent, optionnel)
+Retour: int (id étudiant) ou None
+Erreurs: None si erreur
+
+Exemple:
+    student_id = add_student("Jean", "Dupont", "5A", "parent@email.com")
+    print(f"Étudiant créé avec ID: {student_id}")
+
+
+Fonction: get_all_students()
+────────────────────────────
+Description: Récupère tous les étudiants
+Retour: list[dict] (liste d'étudiants)
+Erreurs: Liste vide si erreur
+
+Exemple:
+    students = get_all_students()
+    for student in students:
+        print(f"{student['first_name']} {student['last_name']} ({student['class_name']})")
+
+
+Fonction: get_student(student_id)
+─────────────────────────────────
+Description: Récupère un étudiant par ID
+Arguments:
+  - student_id: int
+Retour: dict ou None
+Erreurs: None si n'existe pas
+
+Exemple:
+    student = get_student(5)
+    if student:
+        print(f"Classe: {student['class_name']}")
+
+
+Fonction: update_student(student_id, first_name, last_name, class_name, parent_email)
+──────────────────────────────────────────────────────────────────────────────────────
+Description: Met à jour les infos d'un étudiant
+Arguments:
+  - student_id: int
+  - first_name: str
+  - last_name: str
+  - class_name: str
+  - parent_email: str
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    if update_student(5, "Jean", "Durand", "5B", "new@email.com"):
+        print("Étudiant mis à jour")
+
+
+Fonction: delete_student(student_id)
+─────────────────────────────────────
+Description: Supprime un étudiant
+Arguments:
+  - student_id: int
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    if delete_student(5):
+        print("Étudiant supprimé")
+
+
+Fonction: get_students_by_class(class_name)
+────────────────────────────────────────────
+Description: Récupère tous les étudiants d'une classe
+Arguments:
+  - class_name: str (ex: "5A")
+Retour: list[dict]
+Erreurs: Liste vide si aucun
+
+Exemple:
+    class5a = get_students_by_class("5A")
+    print(f"Nombre élèves 5A: {len(class5a)}")
+
+
+Fonction: count_students()
+──────────────────────────
+Description: Compte le nombre total d'étudiants
+Retour: int
+Erreurs: 0 si erreur
+
+Exemple:
+    total = count_students()
+    print(f"Cet établissement a {total} étudiants")
+
+═════════════════════════════════════════════════════════════════════════════════
+D. ABSENCES
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: add_absence(student_id, date, is_present)
+────────────────────────────────────────────────────
+Description: Enregistre une absence/présence
+Arguments:
+  - student_id: int
+  - date: str (format "YYYY-MM-DD")
+  - is_present: bool (True = présent, False = absent)
+Retour: int (id absence) ou None
+Erreurs: None si erreur
+
+Exemple:
+    absence_id = add_absence(5, "2024-01-15", False)  # Jean absent le 15 jan
+    presence_id = add_absence(5, "2024-01-16", True)  # Présent le 16 jan
+
+
+Fonction: get_absences_by_student(student_id)
+──────────────────────────────────────────────
+Description: Récupère toutes les absences d'un étudiant
+Arguments:
+  - student_id: int
+Retour: list[dict] avec colonnes (id, student_id, date, is_present)
+Erreurs: Liste vide si aucune
+
+Exemple:
+    absences = get_absences_by_student(5)
+    for absence in absences:
+        status = "Présent" if absence['is_present'] else "Absent"
+        print(f"{absence['date']}: {status}")
+
+
+Fonction: get_absences_by_date(date)
+─────────────────────────────────────
+Description: Récupère tous les enregistrements pour une date
+Arguments:
+  - date: str (format "YYYY-MM-DD")
+Retour: list[dict]
+Erreurs: Liste vide si aucun
+
+Exemple:
+    jan15 = get_absences_by_date("2024-01-15")
+    print(f"Nombre d'absents le 15: {sum(1 for a in jan15 if not a['is_present'])}")
+
+
+Fonction: get_absences_by_date_range(start_date, end_date)
+───────────────────────────────────────────────────────────
+Description: Récupère les absences sur une période
+Arguments:
+  - start_date: str (format "YYYY-MM-DD")
+  - end_date: str (format "YYYY-MM-DD")
+Retour: list[dict]
+Erreurs: Liste vide si aucun
+
+Exemple:
+    jan_absences = get_absences_by_date_range("2024-01-01", "2024-01-31")
+
+
+Fonction: delete_absence(absence_id)
+─────────────────────────────────────
+Description: Supprime un enregistrement d'absence
+Arguments:
+  - absence_id: int
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    if delete_absence(42):
+        print("Enregistrement supprimé")
+
+
+Fonction: count_absences_by_student(student_id)
+───────────────────────────────────────────────
+Description: Compte les absences d'un étudiant
+Arguments:
+  - student_id: int
+Retour: int (nombre d'absences)
+Erreurs: 0 si erreur
+
+Exemple:
+    nb_absences = count_absences_by_student(5)
+    print(f"Jean a {nb_absences} absences")
+
+
+Fonction: get_presence_rate_by_student(student_id)
+──────────────────────────────────────────────────
+Description: Calcule le taux de présence
+Arguments:
+  - student_id: int
+Retour: float (0.0 à 100.0, %)
+Erreurs: 0.0 si erreur ou aucunedonnée
+
+Exemple:
+    rate = get_presence_rate_by_student(5)
+    print(f"Taux de présence: {rate:.1f}%")
+
+═════════════════════════════════════════════════════════════════════════════════
+E. PARENTS
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: add_parent(first_name, last_name, email, phone, student_id)
+─────────────────────────────────────────────────────────────────────
+Description: Ajoute un parent/tuteur
+Arguments:
+  - first_name: str
+  - last_name: str
+  - email: str
+  - phone: str (format libre)
+  - student_id: int
+Retour: int (id parent) ou None
+Erreurs: None si erreur
+
+Exemple:
+    parent_id = add_parent("Pierre", "Dupont", "pierre@email.com", "06 12 34 56 78", 5)
+
+
+Fonction: get_parent(parent_id)
+───────────────────────────────
+Description: Récupère infos d'un parent
+Arguments:
+  - parent_id: int
+Retour: dict ou None
+Erreurs: None si n'existe pas
+
+Exemple:
+    parent = get_parent(12)
+    if parent:
+        print(f"Email: {parent['email']}")
+
+
+Fonction: get_parents_by_student(student_id)
+─────────────────────────────────────────────
+Description: Récupère les parents d'un étudiant
+Arguments:
+  - student_id: int
+Retour: list[dict]
+Erreurs: Liste vide si aucun
+
+Exemple:
+    parents = get_parents_by_student(5)
+    print(f"Jean a {len(parents)} parent(s)")
+
+
+Fonction: update_parent(parent_id, first_name, last_name, email, phone)
+─────────────────────────────────────────────────────────────────────
+Description: Met à jour les infos d'un parent
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    update_parent(12, "Pierre", "Durand", "pierre.durand@email.com", "06 98 76 54 32")
+
+
+Fonction: delete_parent(parent_id)
+──────────────────────────────────
+Description: Supprime un parent
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    delete_parent(12)
+
+═════════════════════════════════════════════════════════════════════════════════
+F. ADMINS AVEC RÔLES (Système multi-admin)
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: get_all_admins()
+──────────────────────────
+Description: Récupère tous les administrateurs avec leurs rôles
+Retour: list[dict] avec colonnes (id, username, role, is_2fa_enabled, created_at)
+Erreurs: Liste vide si erreur
+
+Exemple:
+    admins = get_all_admins()
+    for admin in admins:
+        print(f"{admin['username']}: {admin['role']}")
+
+
+Fonction: add_admin_with_role(username, password, role)
+────────────────────────────────────────────────────────
+Description: Ajoute un admin avec un rôle spécifique
+Arguments:
+  - username: str
+  - password: str (haché automatiquement)
+  - role: str ("admin" | "editor" | "viewer")
+Retour: int (id admin) ou None
+Erreurs: None si erreur
+
+Exemple:
+    admin_id = add_admin_with_role("prof_marie", "password123", "editor")
+
+
+Fonction: update_admin_role(admin_id, new_role)
+───────────────────────────────────────────────
+Description: Change le rôle d'un admin
+Arguments:
+  - admin_id: int
+  - new_role: str ("admin" | "editor" | "viewer")
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    update_admin_role(3, "viewer")  # Dégrader en lecteur
+
+
+Fonction: check_admin_permission(admin_id, action)
+──────────────────────────────────────────────────
+Description: Vérifie si un admin a la permission pour une action
+Arguments:
+  - admin_id: int
+  - action: str ("create" | "edit" | "delete" | "view")
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    if check_admin_permission(3, "delete"):
+        print("Autorisé à supprimer")
+    else:
+        print("Accès refusé")
+
+═════════════════════════════════════════════════════════════════════════════════
+G. AUTHENTIFICATION 2FA (TOTP)
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: enable_2fa(admin_id)
+──────────────────────────────
+Description: Active l'authentification 2FA pour un admin
+Arguments:
+  - admin_id: int
+Retour: dict avec clés:
+  - secret: str (secret TOTP à scanner)
+  - qr_code: str (URL pour générer QR code)
+Erreurs: None si erreur
+
+Exemple:
+    result = enable_2fa(3)
+    if result:
+        print(f"Secret: {result['secret']}")
+        print(f"QR Code: {result['qr_code']}")
+        print("Scanner le QR code avec Google Authenticator")
+
+
+Fonction: disable_2fa(admin_id)
+───────────────────────────────
+Description: Désactive la 2FA pour un admin
+Arguments:
+  - admin_id: int
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    disable_2fa(3)
+
+
+Fonction: verify_2fa_token(admin_id, token)
+────────────────────────────────────────────
+Description: Vérifie un code TOTP à 6 chiffres
+Arguments:
+  - admin_id: int
+  - token: str (6 chiffres)
+Retour: bool (True = valide)
+Erreurs: False si invalide
+
+Exemple:
+    if verify_2fa_token(3, "123456"):
+        print("Connexion sécurisée")
+    else:
+        print("Code incorrect")
+
+═════════════════════════════════════════════════════════════════════════════════
+H. DEMANDES D'ABSENCE
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: create_absence_request(student_id, start_date, end_date, reason)
+───────────────────────────────────────────────────────────────────────
+Description: Crée une demande d'absence à valider
+Arguments:
+  - student_id: int
+  - start_date: str (format "YYYY-MM-DD")
+  - end_date: str (format "YYYY-MM-DD")
+  - reason: str (description de l'absence)
+Retour: int (id demande) ou None
+Erreurs: None si erreur
+
+Exemple:
+    request_id = create_absence_request(5, "2024-02-15", "2024-02-16", "Rendez-vous médical")
+
+
+Fonction: get_absence_requests(status="pending")
+────────────────────────────────────────────────
+Description: Récupère les demandes d'absence par statut
+Arguments:
+  - status: str ("pending" | "approved" | "rejected" | tous si None)
+Retour: list[dict]
+Erreurs: Liste vide si aucun
+
+Exemple:
+    pending = get_absence_requests("pending")
+    print(f"Nombre de demandes en attente: {len(pending)}")
+
+
+Fonction: approve_absence_request(request_id, admin_id)
+──────────────────────────────────────────────────────
+Description: Approuve une demande d'absence
+Arguments:
+  - request_id: int
+  - admin_id: int (qui approuve)
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    if approve_absence_request(7, 2):
+        print("Demande approuvée")
+
+
+Fonction: reject_absence_request(request_id, admin_id, reason)
+─────────────────────────────────────────────────────────────────
+Description: Rejette une demande d'absence
+Arguments:
+  - request_id: int
+  - admin_id: int (qui rejette)
+  - reason: str (motif du rejet)
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    if reject_absence_request(7, 2, "Documents manquants"):
+        print("Demande rejetée")
+
+═════════════════════════════════════════════════════════════════════════════════
+I. ALERTES ET SEUILS
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: create_alert_rule(name, student_id, threshold_percent, description)
+──────────────────────────────────────────────────────────────────────────────
+Description: Crée une règle d'alerte de seuil
+Arguments:
+  - name: str (nom de l'alerte)
+  - student_id: int (None pour tous)
+  - threshold_percent: float (ex: 80.0 = alerte si < 80% présence)
+  - description: str
+Retour: int (id règle) ou None
+Erreurs: None si erreur
+
+Exemple:
+    alert_id = create_alert_rule("Trop d'absences", 5, 80.0, "Jean dépasse 20% d'absences")
+
+
+Fonction: check_absence_thresholds(student_id)
+──────────────────────────────────────────────
+Description: Vérifie si un étudiant dépasse les seuils d'alerte
+Arguments:
+  - student_id: int
+Retour: list[dict] (alertes déclenches)
+Erreurs: Liste vide si aucun dépassement
+
+Exemple:
+    alerts = check_absence_thresholds(5)
+    for alert in alerts:
+        print(f"ALERTE: {alert['name']}")
+
+
+Fonction: get_active_alerts()
+─────────────────────────────
+Description: Récupère toutes les alertes actives
+Retour: list[dict]
+Erreurs: Liste vide si aucun
+
+Exemple:
+    alerts = get_active_alerts()
+    print(f"Nombre d'alertes: {len(alerts)}")
+
+
+Fonction: mark_alert_as_notified(alert_id)
+────────────────────────────────────────────
+Description: Marque une a comme notifications envoyée
+Arguments:
+  - alert_id: int
+Retour: bool
+Erreurs: False si ID invalide
+
+Exemple:
+    mark_alert_as_notified(8)
+
+═════════════════════════════════════════════════════════════════════════════════
+J. NOTIFICATIONS
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: log_notification(alert_id, parent_id, message, sent_at)
+──────────────────────────────────────────────────────────────────
+Description: Enregistre l'envoi d'une notification
+Arguments:
+  - alert_id: int
+  - parent_id: int
+  - message: str (contenu)
+  - sent_at: str (timestamp)
+Retour: int (id notification) ou None
+Erreurs: None si erreur
+
+Exemple:
+    notif_id = log_notification(8, 12, "Jean a 22% d'absences", "2024-01-15 10:30:00")
+
+
+Fonction: get_notifications_by_parent(parent_id)
+────────────────────────────────────────────────
+Description: Récupère les notifications reçues par un parent
+Arguments:
+  - parent_id: int
+Retour: list[dict]
+Erreurs: Liste vide si aucun
+
+Exemple:
+    notifications = get_notifications_by_parent(12)
+    print(f"Parent a reçu {len(notifications)} notifications")
+
+═════════════════════════════════════════════════════════════════════════════════
+K. NOTES D'ABSENCE
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: add_absence_note(absence_id, admin_id, note_text)
+──────────────────────────────────────────────────────────
+Description: Ajoute une note détaillée sur une absence
+Arguments:
+  - absence_id: int
+  - admin_id: int (qui ajoute la note)
+  - note_text: str (contenu)
+Retour: int (id note) ou None
+Erreurs: None si erreur
+
+Exemple:
+    note_id = add_absence_note(42, 2, "Absence justifiée - certificat médical fourni")
+
+
+Fonction: get_notes_by_absence(absence_id)
+───────────────────────────────────────────
+Description: Récupère toutes les notes d'une absence
+Arguments:
+  - absence_id: int
+Retour: list[dict]
+Erreurs: Liste vide si aucun
+
+Exemple:
+    notes = get_notes_by_absence(42)
+    for note in notes:
+        print(f"{note['admin_id']}: {note['note_text']}")
+
+═════════════════════════════════════════════════════════════════════════════════
+L. AUDIT ET LOGS
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: log_action(admin_id, action, table_name, record_id, old_value, new_value)
+───────────────────────────────────────────────────────────────────────────────────
+Description: Enregistre une action pour audit
+Arguments:
+  - admin_id: int (qui a fait l'action)
+  - action: str ("CREATE" | "UPDATE" | "DELETE" | "VIEW")
+  - table_name: str (ex: "etudiants")
+  - record_id: int (id de l'enregistrement modifié)
+  - old_value: str (ancienne valeur, peut être None)
+  - new_value: str (nouvelle valeur, peut être None)
+Retour: int (id log) ou None
+Erreurs: None si erreur
+
+Exemple:
+    log_action(2, "UPDATE", "etudiants", 5, "Jean Dupont", "Jean Durand")
+
+
+Fonction: get_audit_logs(admin_id=None, action=None, table_name=None)
+─────────────────────────────────────────────────────────────────────
+Description: Récupère les logs d'audit filtrés
+Arguments:
+  - admin_id: int ou None (tous si None)
+  - action: str ou None (tous si None)
+  - table_name: str ou None (tous si None)
+Retour: list[dict]
+Erreurs: Liste vide si aucun
+
+Exemple:
+    # Tous les logs
+    all_logs = get_audit_logs()
+    
+    # Logs de suppression par l'admin 2
+    deletes = get_audit_logs(admin_id=2, action="DELETE")
+    
+    # Modifications d'étudiants
+    student_changes = get_audit_logs(table_name="etudiants")
+
+
+Fonction: get_audit_log_detail(log_id)
+───────────────────────────────────────
+Description: Récupère les détails complets d'un log
+Arguments:
+  - log_id: int
+Retour: dict avec ancien/nouveau contexte
+Erreurs: None si n'existe pas
+
+Exemple:
+    detail = get_audit_log_detail(150)
+    print(f"Avant: {detail['old_value']}")
+    print(f"Après: {detail['new_value']}")
+
+═════════════════════════════════════════════════════════════════════════════════
+M. EMAIL TEMPLATES
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: get_email_template(template_name)
+─────────────────────────────────────────────
+Description: Récupère un template d'email
+Arguments:
+  - template_name: str ("alert_absence" | "approval_request" | "parent_notification")
+Retour: dict avec colonnes (name, subject, body)
+Erreurs: None si n'existe pas
+
+Exemple:
+    template = get_email_template("alert_absence")
+    subject = template['subject']
+    body = template['body']
+
+
+Fonction: update_email_template(template_name, subject, body)
+─────────────────────────────────────────────────────────────
+Description: Met à jour un template d'email
+Arguments:
+  - template_name: str
+  - subject: str (nouveau sujet)
+  - body: str (nouveau corps)
+Retour: bool
+Erreurs: False si n'existe pas
+
+Exemple:
+    update_email_template(
+        "alert_absence",
+        "Alerte: Trop d'absences",
+        "Bonjour,\n\nVotre enfant a atteint {threshold}% d'absences.\n\nCordialement"
+    )
+
+═════════════════════════════════════════════════════════════════════════════════
+N. STATISTIQUES
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: get_stats_by_student(student_id)
+──────────────────────────────────────────
+Description: Calcule les stats pour un étudiant
+Arguments:
+  - student_id: int
+Retour: dict avec colonnes:
+  - total_days: int (jours de présence/absence)
+  - absences: int
+  - present: int
+  - percentage_presence: float
+  - status: str ("OK" | "ALERTE" | "CRITIQUE")
+Erreurs: None si ID invalide
+
+Exemple:
+    stats = get_stats_by_student(5)
+    print(f"Taux: {stats['percentage_presence']:.1f}%")
+    print(f"Statut: {stats['status']}")
+
+
+Fonction: get_stats_by_class(class_name)
+────────────────────────────────────────
+Description: Calcule les stats d'une classe
+Retour: dict avec statistiques globales
+Erreurs: None si classe n'existe pas
+
+Exemple:
+    stats = get_stats_by_class("5A")
+    print(f"Taux moyen: {stats['avg_percentage']:.1f}%")
+
+
+Fonction: get_global_stats()
+────────────────────────────
+Description: Calcule les stats globales de l'établissement
+Retour: dict avec:
+  - total_students: int
+  - total_days_recorded: int
+  - avg_absence_rate: float
+  - most_absent: str (premier prénom absent)
+  - classes: list (par classe)
+Erreurs: None si erreur
+
+Exemple:
+    stats = get_global_stats()
+    print(f"Élèves: {stats['total_students']}")
+    print(f"Taux absence moyen: {stats['avg_absence_rate']:.1f}%")
+
+═════════════════════════════════════════════════════════════════════════════════
+O. UTILITAIRES
+═════════════════════════════════════════════════════════════════════════════════
+
+Fonction: validate_password_strength(password)
+──────────────────────────────────────────────
+Description: Vérifie la forces d'un mot de passe
+Arguments:
+  - password: str
+Retour: dict avec:
+  - score: int (0-5)
+  - strength: str ("faible" | "moyen" | "fort" | "très fort")
+  - suggestions: list[str]
+Erreurs: score=0 si trop faible
+
+Exemple:
+    result = validate_password_strength("test123")
+    print(f"Force: {result['strength']}")
+    if result['suggestions']:
+        print(f"Suggestions: {result['suggestions']}")
+
+
+Fonction: is_valid_email(email)
+───────────────────────────────
+Description: Valide un format email
+Arguments:
+  - email: str
+Retour: bool
+Erreurs: False si format invalide
+
+Exemple:
+    if is_valid_email("prof@lycee.fr"):
+        print("Email valide")
+
+
+Fonction: export_to_csv(table_name, filename)
+──────────────────────────────────────────────
+Description: Exporte une table en CSV
+Arguments:
+  - table_name: str
+  - filename: str (chemin complet)
+Retour: bool (succès ou non)
+Erreurs: False si erreur
+
+Exemple:
+    if export_to_csv("etudiants", "students_export.csv"):
+        print("Exporté à students_export.csv")
+
+
+Fonction: import_from_csv(table_name, filename)
+────────────────────────────────────────────────
+Description: Importe des données depuis CSV
+Arguments:
+  - table_name: str
+  - filename: str (chemin du fichier)
+Retour: int (nombre de lignes importées)
+Erreurs: 0 si erreur
+
+Exemple:
+    count = import_from_csv("etudiants", "students_import.csv")
+    print(f"Import: {count} étudiants")
+
+═════════════════════════════════════════════════════════════════════════════════
+RÉSUMÉ POUR MIGRER
+═════════════════════════════════════════════════════════════════════════════════
+
+De SQLite à MySQL:
+
+Changer import:
+  from database import *
+
+À:
+  from database_mysql import *
+
+Toutes les fonctions sont identiques! ✅
+La signature des fonctions ne change pas
+Les retours ne changent pas
+
+Exemple:
+    # Avant (SQLite)
+    from database import get_all_students
+    students = get_all_students()
+
+    # Après (MySQL)
+    from database_mysql import get_all_students
+    students = get_all_students()  # Même résultat! ✅
+
+═════════════════════════════════════════════════════════════════════════════════
+"""

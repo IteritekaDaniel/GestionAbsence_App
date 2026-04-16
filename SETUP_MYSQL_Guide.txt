@@ -1,0 +1,422 @@
+═════════════════════════════════════════════════════════════════════════════════
+🛠️  GUIDE COMPLET: SETUP MYSQL POUR ABSENCESPRO
+═════════════════════════════════════════════════════════════════════════════════
+
+Ce guide vous montre comment migrer d'une base SQLite à MySQL.
+MySQL est recommandé pour des déploiements multi-utilisateurs.
+
+═════════════════════════════════════════════════════════════════════════════════
+ÉTAPE 1 : INSTALLER MYSQL
+═════════════════════════════════════════════════════════════════════════════════
+
+Windows:
+  1. Télécharger MySQL Community Server
+     https://dev.mysql.com/downloads/mysql/
+  
+  2. Exécuter l'installateur (MySQL-installer-community-8.0.x.msi)
+  
+  3. Choisir "Developer Default" (installation complète)
+  
+  4. Configurer MySQL Server:
+     - Port: 3306 (par défaut)
+     - Config Type: Development Machine
+     - Authentication: Use Strong Password Encryption
+     - MySQL User: root
+     - Password: Choisir un mot de passe fort
+  
+  5. Cliquer "Next" jusqu'à la fin
+  
+  6. ✅ MySQL est maintenant installé et démarré
+
+macOS (avec Homebrew):
+  brew install mysql
+  brew services start mysql
+  mysql_secure_installation
+
+Linux (Ubuntu/Debian):
+  sudo apt update
+  sudo apt install mysql-server
+  sudo mysql_secure_installation
+
+═════════════════════════════════════════════════════════════════════════════════
+ÉTAPE 2 : INSTALLER LE DRIVER PYTHON MYSQL
+═════════════════════════════════════════════════════════════════════════════════
+
+Ouvrir CMD/Terminal dans le dossier "GestionAbsence App" et exécuter:
+
+  pip install mysql-connector-python
+
+Vérification:
+  python -c "import mysql.connector; print('✅ MySQL driver installé')"
+
+═════════════════════════════════════════════════════════════════════════════════
+ÉTAPE 3 : CRÉER LA BASE DE DONNÉES
+═════════════════════════════════════════════════════════════════════════════════
+
+Option A: Avec MySQL Workbench (GUI)
+──────────────────────────────────────
+
+1. Ouvrir MySQL Workbench (installé avec MySQL)
+
+2. Se connecter au serveur local (root)
+
+3. File → Open SQL Script → Sélectionner "SQL_MySQL_Complete.sql"
+
+4. Query → Execute All (ou Ctrl+Shift+Enter)
+
+5. ✅ La base est créée!
+
+
+Option B: Avec CMD/Terminal (CLI)
+──────────────────────────────────
+
+1. Ouvrir CMD/Terminal
+
+2. Se connecter à MySQL:
+   mysql -u root -p
+   (Entrer le mot de passe MySQL)
+
+3. Copier-coller le contenu de SQL_MySQL_Complete.sql
+   OU importer directement:
+   
+   mysql -u root -p < SQL_MySQL_Complete.sql
+
+4. Vérifier:
+   USE gestion_absences;
+   SHOW TABLES;
+   
+   → Vous devez voir 12 tables listées
+
+5. ✅ La base est créée!
+
+
+Option C: Python Script (Automatisé)
+──────────────────────────────────────
+
+Créer un fichier setup_mysql.py:
+
+```python
+import mysql.connector
+
+config = {
+    "host": "localhost",
+    "user": "root",
+    "password": "your_password"  # Remplacer!
+}
+
+try:
+    conn = mysql.connector.connect(**config)
+    cursor = conn.cursor()
+    
+    with open('SQL_MySQL_Complete.sql', 'r', encoding='utf-8') as f:
+        sql_script = f.read()
+    
+    for statement in sql_script.split(';'):
+        if statement.strip():
+            cursor.execute(statement)
+    
+    conn.commit()
+    print("✅ Base de données créée avec succès!")
+    cursor.close()
+    conn.close()
+    
+except Exception as e:
+    print(f"❌ Erreur: {e}")
+```
+
+Exécuter:
+  python setup_mysql.py
+
+═════════════════════════════════════════════════════════════════════════════════
+ÉTAPE 4 : CONFIGURER LA CONNEXION PYTHON
+═════════════════════════════════════════════════════════════════════════════════
+
+Éditer database_mysql.py:
+
+```python
+DB_CONFIG = {
+    "host": "localhost",           # ← Adresse du serveur (localhost pour local)
+    "user": "root",                # ← Utilisateur MySQL
+    "password": "your_password",   # ← ⚠️ REMPLACER PAR VOTRE MOT DE PASSE
+    "database": "gestion_absences",    # ← Nom de la base (ne pas changer)
+    "port": 3306,
+    "charset": "utf8mb4",
+    "use_unicode": True,
+    "autocommit": True
+}
+```
+
+Exemple complet:
+```python
+DB_CONFIG = {
+    "host": "localhost",
+    "user": "root",
+    "password": "MySecurePassword123!",  # ← Votre mot de passe MySQL
+    "database": "absences_pro",
+    "port": 3306,
+    "charset": "utf8mb4",
+    "use_unicode": True,
+    "autocommit": True
+}
+```
+
+═════════════════════════════════════════════════════════════════════════════════
+ÉTAPE 5 : TESTER LA CONNEXION
+═════════════════════════════════════════════════════════════════════════════════
+
+Exécuter dans CMD/Terminal:
+
+  python database_mysql.py
+
+Résultat attendu:
+  ════════════════════════════════════════════════════════════════
+  AbsencesPro — MySQL Connection Tester
+  ════════════════════════════════════════════════════════════════
+  
+  📋 Configuration actuelle:
+    host: localhost
+    user: root
+    database: absences_pro
+    port: 3306
+  
+  🧪 Test de connexion...
+  ✅ Connexion MySQL réussie!
+
+Si erreur (❌):
+  - Vérifier que MySQL est démarré (Services Windows)
+  - Vérifier le mot de passe
+  - Vérifier que la base est créée
+
+═════════════════════════════════════════════════════════════════════════════════
+ÉTAPE 6 : MODIFIER LE FICHIER PRINCIPAL (OPTIONNEL)
+═════════════════════════════════════════════════════════════════════════════════
+
+Pour utiliser MySQL au lieu de SQLite, vous avez deux options:
+
+OPTION A: Garder SQLite (défaut)
+──────────────────────────────────
+main.py continue à utiliser SQLite (database.py)
+C'est plus simple pour un déploiement local.
+
+OPTION B: Passer à MySQL
+──────────────────────────
+1. Éditer main.py:
+
+   Au lieu de:
+   from database import init_db
+   
+   Écrire:
+   from database_mysql import init_db_mysql as init_db
+
+2. Remplacer:
+   init_db()
+   
+   Par:
+   init_db()  # Cela utilisera MySQL maintenant
+
+3. Remplacer tous les imports services.py qui utilisent "from database import get_conn"
+   par imports depuis database_mysql
+
+   Mais le plus simple: Créer une fonction wrapper dans database_mysql.py:
+
+   def get_conn():
+       """Compatible avec le code existant."""
+       db.connection.cursor(dictionary=True)
+       return db.connection
+
+═════════════════════════════════════════════════════════════════════════════════
+ÉTAPE 7 : MIGRER LES DONNÉES DE SQLITE VERS MYSQL (OPTIONNEL)
+═════════════════════════════════════════════════════════════════════════════════
+
+Si vous avez des données dans la base SQLite, vous pouvez les exporter:
+
+script migration_sqlite_mysql.py:
+
+```python
+import sqlite3
+import mysql.connector
+
+# Configuration
+sqlite_db = "absences.db"
+mysql_config = {
+    "host": "localhost",
+    "user": "root",
+    "password": "your_password",
+    "database": "absences_pro"
+}
+
+# Connexions
+sqlite_conn = sqlite3.connect(sqlite_db)
+sqlite_conn.row_factory = sqlite3.Row
+sqlite_cursor = sqlite_conn.cursor()
+
+mysql_conn = mysql.connector.connect(**mysql_config)
+mysql_cursor = mysql_conn.cursor()
+
+# Tables à migrer
+tables = [
+    "etudiants",
+    "absences",
+    "admin",
+    "parents",
+    "admins_extended",
+    "absence_requests",
+    "threshold_alerts",
+    "alert_notifications",
+    "absence_notes",
+    "audit_logs",
+    "email_templates"
+]
+
+for table in tables:
+    try:
+        # Récupérer les données de SQLite
+        sqlite_cursor.execute(f"SELECT * FROM {table}")
+        rows = sqlite_cursor.fetchall()
+        
+        if rows:
+            # Récupérer les colonnes
+            columns = [description[0] for description in sqlite_cursor.description]
+            
+            # Insérer dans MySQL
+            for row in rows:
+                placeholders = ','.join(['%s'] * len(columns))
+                sql = f"INSERT INTO {table} ({','.join(columns)}) VALUES ({placeholders})"
+                mysql_cursor.execute(sql, row)
+            
+            mysql_conn.commit()
+            print(f"✅ {table}: {len(rows)} lignes migrées")
+        else:
+            print(f"⏭️  {table}: vide (skipped)")
+    
+    except Exception as e:
+        print(f"❌ {table}: Erreur - {e}")
+
+sqlite_conn.close()
+mysql_conn.close()
+print("\n✅ Migration complète!")
+```
+
+Exécuter:
+  python migration_sqlite_mysql.py
+
+═════════════════════════════════════════════════════════════════════════════════
+ÉTAPE 8 : UTILISER ABSENCESPRO AVEC MYSQL
+═════════════════════════════════════════════════════════════════════════════════
+
+Après la configuration, vous pouvez:
+
+1. Continuer avec SQLite (aucun changement)
+   python main.py
+   
+   → Utilise database.py (SQLite)
+
+2. Ou utiliser MySQL:
+   Éditer main.py pour importer database_mysql au lieu de database
+   python main.py
+   
+   → Utilise database_mysql.py (MySQL)
+
+═════════════════════════════════════════════════════════════════════════════════
+DÉPLOIEMENT MULTI-UTILISATEURS AVEC MYSQL
+═════════════════════════════════════════════════════════════════════════════════
+
+MySQL est idéal pour plusieurs utilisateurs qui accèdent l'app en même temps!
+
+Architecture recommandée:
+  
+  [User 1] ──┐
+             │
+  [User 2] ──┼→ [MySQL Server] (machine centrale)
+             │
+  [User 3] ──┘
+
+Configuration pour multi-utilisateurs:
+  
+  1. Installer MySQL sur un serveur (machine centrale)
+  2. Configurer l'accès réseau:
+     
+     mysql> CREATE USER 'absences'@'%' IDENTIFIED BY 'password';
+     mysql> GRANT ALL PRIVILEGES ON gestion_absences.* TO 'absences'@'%';
+     mysql> FLUSH PRIVILEGES;
+  
+  3. Sur chaque client, éditer database_mysql.py:
+     
+     DB_CONFIG = {
+         "host": "192.168.1.100",  # ← IP du serveur
+         "user": "absences",
+         "password": "password",
+         "database": "absences_pro"
+     }
+  
+  4. Tous les utilisateurs accèdent la même base!
+
+═════════════════════════════════════════════════════════════════════════════════
+AVANTAGES SQLITE vs MYSQL
+═════════════════════════════════════════════════════════════════════════════════
+
+SQLite (défaut):
+  ✅ Pas d'installation serveur
+  ✅ Base unique fichier (.db)
+  ✅ Déployement simple
+  ❌ Un seul utilisateur à la fois (locks)
+  ❌ Pas d'accès réseau facile
+
+MySQL:
+  ✅ Multi-utilisateurs simultanés
+  ✅ Accès réseau facile
+  ✅ Backups centralisés
+  ✅ Meilleure performance (données volumineuses)
+  ✅ Procédures stockées (log_action, etc.)
+  ❌ Installation serveur requise
+  ❌ Configuration plus complexe
+
+Recommandation:
+  - 1-2 utilisateurs → SQLite (absences.db)
+  - 3+ utilisateurs / serveur → MySQL
+
+═════════════════════════════════════════════════════════════════════════════════
+TROUBLESHOOTING MYSQL
+═════════════════════════════════════════════════════════════════════════════════
+
+Problem: "Access denied for user 'root'@'localhost'"
+Solution: Le mot de passe est incorrect
+  → Vérifier DB_CONFIG["password"]
+  → Réinitialiser le mot de passe root:
+    mysql -u root
+    ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
+    FLUSH PRIVILEGES;
+
+Problem: "Can't connect to MySQL server on 'localhost'"
+Solution: MySQL n'est pas démarré
+  Windows: Services → MySQL80 → Start
+  macOS: brew services start mysql
+  Linux: sudo systemctl start mysql
+
+Problem: "Unknown database 'gestion_absences'"
+Solution: La base n'est pas créée
+  → Exécuter SQL_MySQL_Complete.sql
+
+Problem: "ERROR 1064: Syntax error in SQL statement"
+Solution: Erreur dans le script SQL
+  → Vérifier l'encodage (UTF-8)
+  → Vérifier les guillemets
+
+Problem: "Max connections exceeded"
+Solution: Trop de connexions ouvertes
+  → Ajouter dans database_mysql.py:
+    connection.close() après chaque requête
+  → Utiliser un pool de connexions
+
+═════════════════════════════════════════════════════════════════════════════════
+RESSOURCES
+═════════════════════════════════════════════════════════════════════════════════
+
+MySQL Server: https://dev.mysql.com/downloads/mysql/
+MySQL Workbench: https://dev.mysql.com/downloads/workbench/
+MySQL Connector Python: https://dev.mysql.com/downloads/connector/python/
+MySQL Documentation: https://dev.mysql.com/doc/
+
+═════════════════════════════════════════════════════════════════════════════════
+C'est tout! Vous êtes prêt à utiliser MySQL avec AbsencesPro 🎉
+═════════════════════════════════════════════════════════════════════════════════

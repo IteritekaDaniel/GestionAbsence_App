@@ -1,0 +1,394 @@
+"""
+═════════════════════════════════════════════════════════════════════════════════
+📋 GUIDE RAPIDE: SQLITE vs MYSQL
+═════════════════════════════════════════════════════════════════════════════════
+
+Ce fichier explique comment choisir et configurer votre base de données.
+"""
+
+"""
+═════════════════════════════════════════════════════════════════════════════════
+1️⃣  SITUATION ACTUELLE
+═════════════════════════════════════════════════════════════════════════════════
+
+Vous avez deux options:
+
+OPTION 1: SQLite (défaut, aucune installation)
+──────────────────────────────────────────────────
+Fichier: absences.db
+Configuration: database.py (aucune config requise)
+Statut: ✅ PRÊT À UTILISER
+
+Comment démarrer:
+  python main.py
+
+Utilisé par: Vous seul (un utilisateur à la fois)
+Performances: Excellentes pour < 100,000 absences
+Sauvegarde: Copier absences.db
+
+═════════════════════════════════════════════════════════════════════════════════
+
+OPTION 2: MySQL (multi-utilisateurs, plus puissant)
+──────────────────────────────────────────────────────
+Serveur: MySQL Community Server 5.7+
+Configuration: database_mysql.py (quelques étapes)
+Statut: ⏳ NÉCESSITE SETUP
+
+Comment démarrer:
+  1. python setup_mysql_auto.py  (lance la configuration automatique)
+  2. Ou suivre SETUP_MYSQL_Guide.txt (manuel)
+  3. python main.py
+
+Utilisé par: 3+ personnes simultanément
+Performances: Excellentes pour > 1,000,000 absences
+Sauvegarde: mysqldump command, bases centralisées
+
+═════════════════════════════════════════════════════════════════════════════════
+2️⃣  COMMENT CHOISIR ?
+═════════════════════════════════════════════════════════════════════════════════
+
+Utiliser SQLite (défaut) si:
+  ✅ Vous êtes seul/une personne à la fois
+  ✅ L'application est sur UN ordinateur
+  ✅ Vous ne avez jamais besoin d'accès réseau
+  ✅ Vous préférez la simplicité
+
+Utiliser MySQL si:
+  ✅ 3+ personnes accèdent simultanément
+  ✅ L'app est sur un serveur central
+  ✅ Vous avez besoin d'accès réseau
+  ✅ Vous voulez une sauvegarde centralisée
+
+═════════════════════════════════════════════════════════════════════════════════
+3️⃣  DÉMARRAGE RAPIDE
+═════════════════════════════════════════════════════════════════════════════════
+
+SQLite (aucune installation):
+──────────────────────────────
+
+  1. Ouvrir CMD/Terminal dans le dossier GestionAbsence App
+  
+  2. Exécuter:
+     python main.py
+  
+  3. C'est tout! ✅
+     La base absences.db est créée automatiquement
+
+
+MySQL (avec installation):
+──────────────────────────
+
+  1. Installer MySQL:
+     https://dev.mysql.com/downloads/mysql/
+  
+  2. Installer le driver Python:
+     pip install mysql-connector-python
+  
+  3. Configuration automatique:
+     python setup_mysql_auto.py
+     
+     (Cela va créer la base, migrer les données, etc.)
+  
+  4. Tester la connexion:
+     python database_mysql.py
+  
+  5. Lancer l'application:
+     python main.py
+
+═════════════════════════════════════════════════════════════════════════════════
+4️⃣  CONFIGURATION DÉTAILLÉE
+═════════════════════════════════════════════════════════════════════════════════
+
+SQLite:
+───────
+Fichiers: database.py
+
+Rien à configurer! database.py détecte et crée automatiquement:
+  - Dossier de données
+  - Fichier absences.db
+  - Tables (12 au total)
+  - Données par défaut (admin)
+
+Voir: read database.py pour détails
+
+
+MySQL:
+──────
+Fichiers: database_mysql.py, SQL_MySQL_Complete.sql
+
+Configuration (database_mysql.py, lignes 12-23):
+
+    DB_CONFIG = {
+        "host": "localhost",           # Serveur MySQL
+        "user": "root",                # Utilisateur
+        "password": "your_password",   # REMPLACER!
+        "database": "gestion_absences",    # Nom base
+        "port": 3306,
+        "charset": "utf8mb4",
+        "use_unicode": True,
+        "autocommit": True
+    }
+
+Exemple avec mot de passe:
+
+    DB_CONFIG = {
+        "host": "localhost",
+        "user": "root",
+        "password": "MyPassword123",   # ← Votre mot de passe MySQL
+        "database": "absences_pro",
+        "port": 3306,
+        "charset": "utf8mb4",
+        "use_unicode": True,
+        "autocommit": True
+    }
+
+═════════════════════════════════════════════════════════════════════════════════
+5️⃣  ARCHITECTURE
+═════════════════════════════════════════════════════════════════════════════════
+
+Structure existante:
+
+  main.py
+    └─ from database import init_db, ...
+    └─ from services import *
+    └─ from ui_main import MainApp
+       └─ ui_students.py
+       └─ ui_absences.py
+       └─ ui_stats.py
+       └─ ui_settings.py
+       └─ (+ 6 autres UI modules)
+    └─ from ui_login.py import LoginWindow
+
+database.py (SQLite, défaut):
+  - init_db() → crée absences.db
+  - get_user() → récupère colonne
+  - add_student() → ajoute étudiant
+  - etc. (~60 fonctions)
+
+database_mysql.py (MySQL, optionnel):
+  - MySQLConnection class
+  - init_db_mysql() → crée base sur serveur
+  - get_user() → récupère de serveur
+  - add_student() → ajoute à serveur
+  - Même signature que database.py ✅ (compatible!)
+
+services.py (métier, inchangé):
+  - validate_login()
+  - get_student_stats()
+  - send_email_notification()
+  - etc. (~200 fonctions)
+
+═════════════════════════════════════════════════════════════════════════════════
+6️⃣  MIGRER DE SQLITE À MYSQL (OPTIONNEL)
+═════════════════════════════════════════════════════════════════════════════════
+
+Si vous avez déjà des données en SQLite et voulez basculer à MySQL:
+
+Étape 1: Créer base MySQL
+──────────────────────────
+  python setup_mysql_auto.py
+
+(Cela va offrir d'automatiquement migrer les données!)
+
+Ou manuellement:
+  - Installer MySQL serveur
+  - Exécuter SQL_MySQL_Complete.sql
+  - Exécuter le script migration_sqlite_mysql.py
+
+Étape 2: Basculer main.py vers MySQL
+──────────────────────────────────────
+Actuellement:
+  from database import init_db
+
+Changer en:
+  from database_mysql import init_db as init_db
+
+Et au lieu de:
+  init_db()
+
+Garder la même ligne! (database_mysql.py a la même signature)
+
+Étape 3: Redémarrer l'app
+─────────────────────────
+  python main.py
+
+Tout fonctionne avec MySQL maintenant! ✅
+
+═════════════════════════════════════════════════════════════════════════════════
+7️⃣  DÉPLOIEMENT MULTI-UTILISATEURS
+═════════════════════════════════════════════════════════════════════════════════
+
+Scénario: 5 professeurs, 1 serveur, application réseau
+
+Configuration:
+
+[Serveur central]        [Clients Windows]
+    │
+    ├─ MySQL Server 8.0
+    │  └─ gestion_absences database
+    │
+    ├─ (optionnel) Flask API
+    │  └─ pour accès mobile
+    │
+    └─ Partage réseau
+       └─ \\serveur\gestion_absences
+
+Chaque client:
+
+→ Installer Python + customtkinter + mysql-connector-python
+→ Copier fichiers application
+→ Éditer database_mysql.py:
+    host: "192.168.1.100"  # IP du serveur
+    user: "absences"
+    password: "shared_password"
+→ Exécuter python main.py
+
+Tous partagent la même base! ✅
+
+═════════════════════════════════════════════════════════════════════════════════
+8️⃣  COMMANDES UTILES
+═════════════════════════════════════════════════════════════════════════════════
+
+SQLite:
+───────
+# Ouvrir la base dans SQLite Browser
+sqlite3 absences.db
+
+# Exporter en CSV
+sqlite3 absences.db "SELECT * FROM etudiants" > students.csv
+
+# Sauvegarde
+copy absences.db absences_backup.db
+
+
+MySQL:
+──────
+# Connexion au serveur
+mysql -u root -p
+
+# Voir les bases disponibles
+SHOW DATABASES;
+
+# Sélectionner la base
+USE gestion_absences;
+
+# Lister les tables
+SHOW TABLES;
+
+# Voir la structure d'une table
+DESCRIBE etudiants;
+
+# Exporter en CSV
+SELECT * INTO OUTFILE '/tmp/students.csv'
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+FROM etudiants;
+
+# Sauvegarde
+mysqldump -u root -p gestion_absences > backup.sql
+
+# Restaurer
+mysql -u root -p gestion_absences < backup.sql
+
+═════════════════════════════════════════════════════════════════════════════════
+9️⃣  TROUBLESHOOTING
+═════════════════════════════════════════════════════════════════════════════════
+
+SQLite - Erreur: "database is locked"
+─────────────────────────────────────
+Cause: Deux instances accèdent à absences.db
+Solution: Fermer l'autre instance
+
+
+MySQL - Erreur: "Access denied for user 'root'@'localhost'"
+──────────────────────────────────────────────────────────
+Cause: Mot de passe incorrect
+Solution: 
+  1. Vérifier DB_CONFIG["password"]
+  2. Réinitialiser le mot de passe:
+     mysql -u root
+     ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
+     FLUSH PRIVILEGES;
+
+
+MySQL - Erreur: "Can't connect to MySQL server"
+───────────────────────────────────────────────
+Cause: MySQL n'est pas démarré
+Solution:
+  Windows: Services.msc → MySQL80 → Start
+  macOS: brew services start mysql
+  Linux: sudo systemctl start mysql
+
+
+MySQL - Erreur: "Unknown database 'gestion_absences'"
+─────────────────────────────────────────────────
+Cause: La base n'a pas été créée
+Solution: Exécuter setup_mysql_auto.py ou importer SQL_MySQL_Complete.sql
+
+
+Performances lentes avec MySQL dans un réseau
+─────────────────────────────────────────────
+Cause: Latence réseau
+Solution: 
+  1. Vérifier la connexion (ping serveur)
+  2. Mettre en cache les données locales
+  3. Utiliser des requêtes optimisées
+
+═════════════════════════════════════════════════════════════════════════════════
+🔟  RESSOURCES
+═════════════════════════════════════════════════════════════════════════════════
+
+Fichiers inclus:
+
+  setup_mysql_auto.py
+    → Script qui automatise tout setup MySQL
+    → À exécuter une fois seulement
+    → Usage: python setup_mysql_auto.py
+
+  SQL_MySQL_Complete.sql
+    → Script SQL pour créer la base
+    → À exécuter manuellement si pas d'auto setup
+    → Contenu: 12 tables, 3 vues, 2 procédures
+
+  database_mysql.py
+    → Module Python pour MySQL
+    → À importer au lieu de database.py
+    → Configuration: DB_CONFIG dict au début
+
+  SETUP_MYSQL_Guide.txt
+    → Guide détaillé étape par étape
+    → Pour setup manuel ou dépannage
+
+  DATABASE_USAGE.txt
+    → Documentation de l'API database
+    → Liste toutes les fonctions disponibles
+
+
+Sites:
+
+  MySQL: https://dev.mysql.com/
+  Python MySQL: https://dev.mysql.com/doc/connector-python/en/
+  SQLite: https://www.sqlite.org/
+
+═════════════════════════════════════════════════════════════════════════════════
+RÉSUMÉ RAPIDE:
+═════════════════════════════════════════════════════════════════════════════════
+
+❓ Quoi faire maintenant?
+
+  Si c'est votre première utilisation:
+    1. python main.py
+       → SQLite se configure automatiquement ✅
+
+  Si vous voulez MySQL (plusieurs utilisateurs):
+    1. pip install mysql-connector-python
+    2. python setup_mysql_auto.py
+    3. python main.py
+       → MySQL est prêt! ✅
+
+  Si vous avez besoin d'aide:
+    → Voir SETUP_MYSQL_Guide.txt (guide complet)
+    → Voir DATABASE_USAGE.txt (API référence)
+
+═════════════════════════════════════════════════════════════════════════════════
+"""
