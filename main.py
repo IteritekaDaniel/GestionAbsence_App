@@ -1,15 +1,3 @@
-"""
-main.py — Point d'entrée de DanProject v2.0
-Lance l'application avec support du thème système
-
-╔════════════════════════════════════════════════════════════════╗
-║                  ✨ DAN PROJECT v2.0 ✨                        ║
-║              Gestion Intelligente & Moderne                    ║
-║                                                                ║
-║            Couleurs: Doré 50% | Bleu 30% | Rose 20%          ║
-║         Mode Système: ✅ | Thème Sombre: ✅ | Sans IA: ✅     ║
-╚════════════════════════════════════════════════════════════════╝
-"""
 
 import customtkinter as ctk
 import sys
@@ -26,7 +14,7 @@ from ui_login import LoginWindow
 
 if __name__ == "__main__":
     print("-" * 62)
-    print(f"✨ {Symbols.APP_NAME} v2.0")
+    print(f" {Symbols.APP_NAME} ")
     print(f"   {Symbols.APP_TAGLINE}")
     print("-" * 62)
     print(f"🎨 Thème système: {theme.system_theme.upper()}")
