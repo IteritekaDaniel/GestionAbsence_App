@@ -16,6 +16,7 @@ from advanced_widgets import ModernCard, GradientButton, StatCard, ProgressIndic
 from user_preferences import user_preferences
 from symbols import Symbols, IconText
 from analytics import analytics
+from image_manager import image_manager
 
 # ═════════════════════════════════════════════════════════════════════════════
 # IMPORTS - Views existantes
@@ -133,7 +134,7 @@ class ImprovedMainWindow(ctk.CTk):
         self.current_view = None
     
     def _build_sidebar_header(self):
-        """Construit l'en-tête de la sidebar"""
+        """Construit l'en-tête de la sidebar avec logo optimisé"""
         
         header_frame = ctk.CTkFrame(
             self.sidebar,
@@ -141,13 +142,28 @@ class ImprovedMainWindow(ctk.CTk):
         )
         header_frame.pack(fill='x', padx=15, pady=20)
         
-        # Logo avec icône
+        # Logo avec image optimisée
         logo_container = ctk.CTkFrame(header_frame, fg_color='transparent')
         logo_container.pack(fill='x', pady=(0, 10))
         
+        # Charger le logo depuis les assets
+        logo_img = image_manager.load_image(
+            "logos/danproject_logo.png",
+            size=(40, 40),
+            use_cache=True
+        )
+        
+        if logo_img:
+            logo_img_label = ctk.CTkLabel(
+                logo_container,
+                image=logo_img,
+                text=''
+            )
+            logo_img_label.pack(side='left', padx=(0, 10))
+        
         logo_text = ctk.CTkLabel(
             logo_container,
-            text=f"{Symbols.APP_LOGO} DanProject",
+            text="DanProject",
             font=('Segoe UI', 16, 'bold'),
             text_color=theme.get_color('accent_gold_main')
         )

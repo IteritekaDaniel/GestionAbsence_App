@@ -1,0 +1,38 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fond cercle -->
+  <circle cx="128" cy="128" r="120" fill="url(#grad1)" />
+  
+  <!-- Icone calendrier -->
+  <g transform="translate(128, 128)">
+    <!-- Cadre calendrier -->
+    <rect x="-40" y="-50" width="80" height="70" fill="#FFFFFF" stroke="#333" stroke-width="2" rx="3"/>
+    
+    <!-- Bande titre -->
+    <rect x="-40" y="-50" width="80" height="15" fill="#FFD700" stroke="#333" stroke-width="2" rx="3"/>
+    
+    <!-- Texte -->
+    <text x="0" y="-38" font-size="10" font-weight="bold" text-anchor="middle" fill="#333">DAN</text>
+    
+    <!-- Jours -->
+    <text x="-30" y="-15" font-size="8" text-anchor="middle" fill="#333">L</text>
+    <text x="-10" y="-15" font-size="8" text-anchor="middle" fill="#333">M</text>
+    <text x="10" y="-15" font-size="8" text-anchor="middle" fill="#333">M</text>
+    <text x="30" y="-15" font-size="8" text-anchor="middle" fill="#333">J</text>
+    
+    <!-- Grille dates -->
+    <circle cx="-20" cy="0" r="4" fill="#FFD700" opacity="0.5"/>
+    <circle cx="0" cy="0" r="4" fill="#FFD700" opacity="0.5"/>
+    <circle cx="20" cy="0" r="4" fill="#FFD700" opacity="0.5"/>
+    <circle cx="-20" cy="15" r="4" fill="#FF6B6B"/>
+    <circle cx="0" cy="15" r="4" fill="#FF6B6B"/>
+    <circle cx="20" cy="15" r="4" fill="#FF6B6B"/>
+  </g>
+</svg>

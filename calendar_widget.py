@@ -1,3 +1,4 @@
+
 """
 calendar_widget.py — Calendrier interactif des absences
 """
